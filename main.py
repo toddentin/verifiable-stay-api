@@ -142,8 +142,23 @@ async function go(){
   document.getElementById('out').textContent = await res.text();
 }
 </script></body></html>"""
-
+from fastapi.middleware.cors import CORSMiddleware
 
 @app.get("/health")
 def health():
     return {"ok": True, "public_key": PUBLIC_B64}
+
+
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+waiting = []
+
+@app.post("/api/requests")
+def add_request(fields: dict):
+    fields["id"] = len(waiting) + 1
+    fields["filed"] = False
+    waiting.append(fields)
+    return {"ok": True}
+
+@app.get("/api/requests")
+def list_requests():
+    return [r for r in waiting if not r["filed"]]
